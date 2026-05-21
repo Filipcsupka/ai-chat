@@ -31,6 +31,9 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Set short SHA
+        run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> "$GITHUB_ENV"
+
       - name: Build and push image
         id: build
         uses: docker/build-push-action@v5
@@ -38,7 +41,7 @@ jobs:
           context: rag-api
           push: true
           tags: |
-            ${{ env.IMAGE }}:sha-${{ github.sha }}
+            ${{ env.IMAGE }}:sha-${{ env.SHORT_SHA }}
             ${{ env.IMAGE }}:latest
 
       - name: Checkout infra repo
