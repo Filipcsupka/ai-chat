@@ -10,6 +10,7 @@ Endpoints:
 """
 
 import logging
+import time
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException
@@ -92,25 +93,41 @@ async def chat_stream(req: ChatRequest):
       // read tokens and append to message bubble
     """
     question = req.message.strip()
+    t0 = time.monotonic()
 
-    # Embed query and retrieve relevant context
     query_embedding = await embed_text(question)
+    t_embed = time.monotonic()
+
     context_chunks = await query(query_embedding, top_k=settings.top_k)
+    t_retrieval = time.monotonic()
 
     if not context_chunks:
         logger.warning("No context chunks retrieved for query: %r", question[:80])
 
     async def event_stream():
+        ttft_ms: int | None = None
+        t_gen = time.monotonic()
         try:
             async for token in generate_stream(context_chunks, question):
-                # SSE format: data: <token>\n\n
-                # Escape newlines within token to keep SSE framing valid
+                if ttft_ms is None:
+                    ttft_ms = int((time.monotonic() - t_gen) * 1000)
                 safe = token.replace("\n", "\\n")
                 yield f"data: {safe}\n\n"
             yield "data: [DONE]\n\n"
         except Exception as exc:
             logger.error("Stream error: %s", exc)
             yield "data: [ERROR]\n\n"
+        finally:
+            total_ms = int((time.monotonic() - t0) * 1000)
+            logger.info(
+                "CHAT embed_ms=%d retrieval_ms=%d ttft_ms=%s total_ms=%d chunks=%d q=%r",
+                int((t_embed - t0) * 1000),
+                int((t_retrieval - t_embed) * 1000),
+                ttft_ms,
+                total_ms,
+                len(context_chunks),
+                question[:120],
+            )
 
     return StreamingResponse(event_stream(), media_type="text/event-stream")
 
