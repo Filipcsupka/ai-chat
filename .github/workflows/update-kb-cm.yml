@@ -78,9 +78,13 @@ jobs:
 
       - name: Commit and push to infra repo
         working-directory: infra
+        env:
+          SHA: ${{ github.event.workflow_run.head_sha }}
+          PAT: ${{ secrets.INFRA_REPO_PAT }}
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin "https://x-access-token:${PAT}@github.com/Filipcsupka/infra.git"
           git add \
             gitops/apps/ai-chat/base/knowledge-base-cm.yaml \
             gitops/apps/ai-chat/overlays/prod/kustomization.yaml
