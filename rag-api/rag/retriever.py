@@ -20,7 +20,7 @@ from config import settings
 from rag.chunker import Chunk
 
 
-_client: chromadb.AsyncHttpClient | None = None
+_client = None
 _collection = None
 
 
