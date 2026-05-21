@@ -31,6 +31,11 @@ logger = logging.getLogger(__name__)
 async def lifespan(app: FastAPI):
     logger.info("Starting RAG API — ingesting knowledge base...")
     await ingest_knowledge_base()
+    logger.info("Warming up LLM (loading qwen3:8b into VRAM)...")
+    try:
+        await generate([], "hello")
+    except Exception as exc:
+        logger.warning("LLM warmup failed (non-fatal): %s", exc)
     logger.info("Ready.")
     yield
 
