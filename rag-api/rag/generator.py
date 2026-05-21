@@ -57,9 +57,11 @@ async def generate_stream(context_chunks: list[str], user_question: str) -> Asyn
                 "model": settings.ollama_chat_model,
                 "messages": messages,
                 "stream": True,
+                "keep_alive": -1,
                 "options": {
                     "temperature": 0.7,
                     "num_ctx": 4096,
+                    "think": False,
                 },
             },
         ) as response:

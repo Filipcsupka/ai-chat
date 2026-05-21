@@ -21,7 +21,7 @@ async def embed_text(text: str) -> list[float]:
     async with httpx.AsyncClient(timeout=30.0) as client:
         response = await client.post(
             f"{settings.ollama_url}/api/embeddings",
-            json={"model": settings.ollama_embed_model, "prompt": text},
+            json={"model": settings.ollama_embed_model, "prompt": text, "keep_alive": -1},
         )
         response.raise_for_status()
         return response.json()["embedding"]
