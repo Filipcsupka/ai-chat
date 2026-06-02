@@ -14,7 +14,6 @@ Query returns the top-k chunks by cosine similarity to the query embedding.
 """
 
 import chromadb
-from chromadb.config import Settings as ChromaSettings
 
 from config import settings
 from rag.chunker import Chunk
@@ -30,11 +29,9 @@ async def _get_collection():
         _client = await chromadb.AsyncHttpClient(
             host=settings.chromadb_host,
             port=settings.chromadb_port,
-            settings=ChromaSettings(anonymized_telemetry=False),
         )
         _collection = await _client.get_or_create_collection(
             name=settings.chromadb_collection,
-            metadata={"hnsw:space": "cosine"},
         )
     return _collection
 
